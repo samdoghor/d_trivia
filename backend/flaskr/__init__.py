@@ -1,10 +1,13 @@
+#from crypt import methods
 import os
 from flask import Flask, request, abort, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 import random
 
-from models import setup_db, Question, Category
+#from models import setup_db, Question, Category
+
+from models import * #DoghorSamuel
 
 QUESTIONS_PER_PAGE = 10
 
@@ -16,16 +19,33 @@ def create_app(test_config=None):
     """
     @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
     """
+    CORS(app) #DoghorSamuel
 
     """
     @TODO: Use the after_request decorator to set Access-Control-Allow
     """
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Headers', 'GET, POST, PATCH, DELETE, OPTIONS')
+        return response #DoghorSamuel
 
     """
     @TODO:
     Create an endpoint to handle GET requests
     for all available categories.
     """
+    @app.route('/categories', methods=['GET'])
+    def get_categories():
+        all_cat=Category.query.order_by(Category.id).all()
+        fmt_cat=[x.format() for x in all_cat]
+
+        return jsonify({
+            'Success': True,
+            'Categories': fmt_cat
+        })
+    
+    #Get all avalaible categories without pagination
 
 
     """
@@ -99,4 +119,3 @@ def create_app(test_config=None):
     """
 
     return app
-
