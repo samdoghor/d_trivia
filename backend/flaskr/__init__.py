@@ -237,7 +237,7 @@ def create_app(test_config=None):
     category to be shown.
     """
     @app.route('/categories/<int:category_id>/questions', methods=['GET'])
-    def retrieve_questions_by_category(category_id):
+    def get_questions_by_category(category_id):
 
         try:
             questions = Question.query.filter(Question.category == str(category_id)).all()
