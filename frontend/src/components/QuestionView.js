@@ -4,6 +4,8 @@ import Question from './Question';
 import Search from './Search';
 import $ from 'jquery';
 
+
+
 class QuestionView extends Component {
   constructor() {
     super();
@@ -138,7 +140,7 @@ class QuestionView extends Component {
             Categories
           </h2>
           <ul>
-            {Object.keys(this.state.categories).map((id) => (
+            {this.state.categories && Object.keys(this.state.categories).map((id) => (
               <li
                 key={id}
                 onClick={() => {
@@ -158,7 +160,7 @@ class QuestionView extends Component {
         </div>
         <div className='questions-list'>
           <h2>Questions</h2>
-          {this.state.questions.map((q, ind) => (
+          {this.state.questions && Object.keys(this.state.questions).map((q, ind) => (
             <Question
               key={q.id}
               question={q.question}
