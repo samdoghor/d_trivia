@@ -87,7 +87,6 @@ python test_flaskr.py
 to run test
 
 ## API Reference
-
 ### Error Handling
 
 Errors are returned as JSON objects in the following format:
@@ -95,24 +94,33 @@ Errors are returned as JSON objects in the following format:
 ```
 {
     "success": False, 
-    "error": 400,
-    "message": "bad request"
+    "error": <error code>,
+    "message": <"error message>
 }
 ```
 
-The API will return three error types when requests fail:
-
-400: Bad Request
+The API will return three major types of errors when requests fail,
+These are:
 404: Resource Not Found
 422: Not Processable
-500: Internal Server Error
 405: Method Not Allowed
 
-### Endpoints
+Others Include:
+400: Bad Request
+500: Internal Server Error
 
+### Endpoints
+The endpoints include:
+
+GET '/categories'
+GET '/categories/<int:id>/questions'
+GET '/questions'
+POST '/questions'
+DELETE '/questions/<int:id>'
+POST  '/questions/search'
+POST '/quizzes'
 
 **GET /categories**
-
 General:
 - Returns a list of categories, success value
 - Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
@@ -121,15 +129,188 @@ Sample: ```curl http://127.0.0.1:5000/categories```
 
 ```
 {
-  "categories": {
-    "1": "Science", 
-    "2": "Art", 
-    "3": "Geography", 
-    "4": "History", 
-    "5": "Entertainment", 
-    "6": "Sports"
-  }, 
-  "success": true
+  "CATEGORIES": [
+    {
+      "id": 1, 
+      "type": "Science"
+    }, 
+    {
+      "id": 2, 
+      "type": "Art"
+    }, 
+    {
+      "id": 3, 
+      "type": "Geography"
+    }, 
+    {
+      "id": 4, 
+      "type": "History"
+    }, 
+    {
+      "id": 5, 
+      "type": "Entertainment"
+    }, 
+    {
+      "id": 6, 
+      "type": "Sports"
+    }
+  ], 
+  "SUCCESS": true
+}
+```
+
+**GET /categories/{id}/questions**
+General:
+- Returns a list of questions, in the given category, category total_questions and success value
+- Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
+
+Sample: ```curl http://127.0.0.1:5000/categories/2/questions```
+
+```
+{
+  "CURRENT CATEGORY": 2, 
+  "QUESTIONS": [
+    {
+      "answer": "Escher", 
+      "category": 2, 
+      "difficulty": 1, 
+      "id": 16, 
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    }, 
+    {
+      "answer": "Mona Lisa", 
+      "category": 2, 
+      "difficulty": 3, 
+      "id": 17, 
+      "question": "La Giaconda is better known as what?"
+    }, 
+    {
+      "answer": "One", 
+      "category": 2, 
+      "difficulty": 4, 
+      "id": 18, 
+      "question": "How many paintings did Van Gogh sell in his lifetime?"
+    }, 
+    {
+      "answer": "Jackson Pollock", 
+      "category": 2, 
+      "difficulty": 2, 
+      "id": 19, 
+      "question": "Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?"
+    }
+  ], 
+  "SUCCESS": true, 
+  "TOTAL QUESTIONS": 4
+}
+```
+
+**GET /questions**
+General:
+- Returns all questions avalaible in database, success value
+- Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
+
+Sample: ```curl http://127.0.0.1:5000/questions```
+
+```
+{
+  "QUESTIONS": [
+    {
+      "answer": "Alexander Fleming",
+      "category": 1,
+      "difficulty": 3,
+      "id": 21,
+      "question": "Who discovered penicillin?"
+    },
+    {
+      "answer": "Blood",
+      "category": 1,
+      "difficulty": 4,
+      "id": 22,
+      "question": "Hematology is a branch of medicine involving the study of what?"
+    },
+    {
+      "answer": "The Liver",
+      "category": 1,
+      "difficulty": 4,
+      "id": 20,
+      "question": "What is the heaviest organ in the human body?"
+    },
+    {
+      "answer": "Jackson Pollock",
+      "category": 2,
+      "difficulty": 2,
+      "id": 19,
+      "question": "Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?"
+    },
+    {
+      "answer": "One",
+      "category": 2,
+      "difficulty": 4,
+      "id": 18,
+      "question": "How many paintings did Van Gogh sell in his lifetime?"
+    },
+    {
+      "answer": "Escher",
+      "category": 2,
+      "difficulty": 1,
+      "id": 16,
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    },
+    {
+      "answer": "Mona Lisa",
+      "category": 2,
+      "difficulty": 3,
+      "id": 17,
+      "question": "La Giaconda is better known as what?"
+    },
+    {
+      "answer": "The Palace of Versailles",
+      "category": 3,
+      "difficulty": 3,
+      "id": 14,
+      "question": "In which royal palace would you find the Hall of Mirrors?"
+    },
+    {
+      "answer": "Lake Victoria",
+      "category": 3,
+      "difficulty": 2,
+      "id": 13,
+      "question": "What is the largest lake in Africa?"
+    },
+    {
+      "answer": "Agra",
+      "category": 3,
+      "difficulty": 2,
+      "id": 15,
+      "question": "The Taj Mahal is located in which Indian city?"
+    }
+  ],
+  "QUESTIONS ON PAGE": 10,
+  "Q_CATEGORIES": [
+    "Science",
+    "Art",
+    "Geography",
+    "History",
+    "Entertainment",
+    "Sports"
+  ],
+  "SUCCESS": true,
+  "TOTAL QUESTIONS": 19
+}
+
+```
+
+**POST /questions**
+General:
+- Creates a new question using the submitted title, answer, category and difficulty. Returns the id of the created question id, success value, total questions number, and questions list based on current page number to update the frontend
+
+Sample: ```curl -X POST -H "Content-Type: application/json" -d '{"question":"What was the name of the first man-made satellite launched by the Soviet Union in 1957?", "answer": "Sputnik 1","category" :"1", "difficulty":"2"}' http://127.0.0.1:5000/questions'```
+
+
+```
+{
+  "SUCCESS": true,
+  "TOTAL QUESTIONS": 20
 }
 ```
 
@@ -138,207 +319,70 @@ Sample: ```curl http://127.0.0.1:5000/categories```
 General:
 - Deletes the question of the given ID if it exists. Returns success value.
 
-Sample ```curl -X DELETE http://127.0.0.1:5000/questions/16?page=2 ```
+Sample ```curl -X DELETE http://127.0.0.1:5000/questions/15 ```
 
 
 ```
 {
-  "success": true
+  "QUESTION DELETED": 15,
+  "SUCCESS": true,
+  "TOTAL QUESTIONS": 19
 }
 ```
-
-**POST /questions/{id}**
-
-
-General:
-- Creates a new question using the submitted title, answer, category and difficulty. Returns the id of the created question id, success value, total questions number, and questions list based on current page number to update the frontend
-
-Sample: ```curl http://127.0.0.1:5000/questions -X POST -H "Content-Type: application/json" -d '{"question":"What was the name of the first man-made satellite launched by the Soviet Union in 1957?", "answer": "Sputnik 1","category" :"1", "difficulty":"2"}'```
-
-
-```
-{
-  "created": 68, 
-  "questions": [
-    {
-      "answer": "Tom Cruise", 
-      "category": "5", 
-      "difficulty": 4, 
-      "id": 4, 
-      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
-    }, 
-    {
-      "answer": "Maya Angelou", 
-      "category": "4", 
-      "difficulty": 2, 
-      "id": 5, 
-      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
-    }, 
-    {
-      "answer": "Edward Scissorhands", 
-      "category": "5", 
-      "difficulty": 3, 
-      "id": 6, 
-      "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
-    }, 
-    {
-      "answer": "Muhammad Ali", 
-      "category": "4", 
-      "difficulty": 1, 
-      "id": 9, 
-      "question": "What boxer's original name is Cassius Clay?"
-    }, 
-    {
-      "answer": "Brazil", 
-      "category": "6", 
-      "difficulty": 3, 
-      "id": 10, 
-      "question": "Which is the only team to play in every soccer World Cup tournament?"
-    }, 
-    {
-      "answer": "Uruguay", 
-      "category": "6", 
-      "difficulty": 4, 
-      "id": 11, 
-      "question": "Which country won the first ever soccer World Cup in 1930?"
-    }, 
-    {
-      "answer": "George Washington Carver", 
-      "category": "4", 
-      "difficulty": 2, 
-      "id": 12, 
-      "question": "Who invented Peanut Butter?"
-    }, 
-    {
-      "answer": "Lake Victoria", 
-      "category": "3", 
-      "difficulty": 2, 
-      "id": 13, 
-      "question": "What is the largest lake in Africa?"
-    }, 
-    {
-      "answer": "The Palace of Versailles", 
-      "category": "3", 
-      "difficulty": 3, 
-      "id": 14, 
-      "question": "In which royal palace would you find the Hall of Mirrors?"
-    }, 
-    {
-      "answer": "Agra", 
-      "category": "3", 
-      "difficulty": 2, 
-      "id": 15, 
-      "question": "The Taj Mahal is located in which Indian city?"
-    }
-  ], 
-  "success": true, 
-  "total_questions": 61
-}
-```
-
 
 **POST /search**
-
-
 General:
 - search for a question using the submitted search term. Returns the results, success value, total questions.
 
-
-Sample ```curl http://127.0.0.1:5000/search -X POST -H "Content-Type: application/json" -d '{"searchTerm":"who"}'```
+Sample ```curl http://127.0.0.1:5000/questions/search -X POST -H "Content-Type: application/json" -d '{"searchTerm":"who"}'```
 
 ```
 {
-  "questions": [
+  "QUESTIONS": [
     {
-      "answer": "Maya Angelou", 
-      "category": "4", 
-      "difficulty": 2, 
-      "id": 5, 
+      "answer": "Maya Angelou",
+      "category": 4,
+      "difficulty": 2,
+      "id": 5,
       "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
-    }, 
+    },
     {
-      "answer": "George Washington Carver", 
-      "category": "4", 
-      "difficulty": 2, 
-      "id": 12, 
+      "answer": "George Washington Carver",
+      "category": 4,
+      "difficulty": 2,
+      "id": 12,
       "question": "Who invented Peanut Butter?"
-    }, 
+    },
     {
-      "answer": "Alexander Fleming", 
-      "category": "1", 
-      "difficulty": 3, 
-      "id": 21, 
+      "answer": "Alexander Fleming",
+      "category": 1,
+      "difficulty": 3,
+      "id": 21,
       "question": "Who discovered penicillin?"
     }
-  ], 
-  "success": true, 
-  "total_questions": 3
+  ],
+  "SUCCESS": true,
+  "TOTAL QUESTIONS": 3
 }
-```
 
-**GET /categories/{id}/questions**
-
-
-General:
-
-- Returns a list of questions, in the given category, category total_questions and success value
-- Results are paginated in groups of 10. Include a request argument to choose page number, starting from 1.
-
-
-Sample: ```curl http://127.0.0.1:5000/categories/3/questions```
-
-```
-{
-  "current_category": "Geography", 
-  "questions": [
-    {
-      "answer": "Lake Victoria", 
-      "category": "3", 
-      "difficulty": 2, 
-      "id": 13, 
-      "question": "What is the largest lake in Africa?"
-    }, 
-    {
-      "answer": "The Palace of Versailles", 
-      "category": "3", 
-      "difficulty": 3, 
-      "id": 14, 
-      "question": "In which royal palace would you find the Hall of Mirrors?"
-    }, 
-    {
-      "answer": "Agra", 
-      "category": "3", 
-      "difficulty": 2, 
-      "id": 15, 
-      "question": "The Taj Mahal is located in which Indian city?"
-    }
-  ], 
-  "success": true, 
-  "total_questions": 3
-}
 ```
 
 **POST /quizzes**
-
 General:
 - recive the actual question and the category
 - return the next question in the same category and success value.
 
-
 Sample``` curl http://127.0.0.1:5000/quizzes -X POST -H "Content-Type: application/json" -d '{"quiz_category":{"type":"Geography","id":"3"}, "previous_questions":[13]}'``` 
-
 
 ```
 {
-  "question": {
-    "answer": "Agra", 
-    "category": "3", 
-    "difficulty": 2, 
-    "id": 15, 
-    "question": "The Taj Mahal is located in which Indian city?"
-  }, 
-  "success": true
+  "QUESTION": {
+    "answer": "The Palace of Versailles",
+    "category": 3,
+    "difficulty": 3,
+    "id": 14,
+    "question": "In which royal palace would you find the Hall of Mirrors?"
+  },
+  "SUCCESS": true
 }
 ```
-
-
