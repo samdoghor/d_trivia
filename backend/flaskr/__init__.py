@@ -60,16 +60,20 @@ def create_app(test_config=None):
     @app.route('/categories', methods=['GET'])
     def get_categories():
         # Access this endpoint locally with http://127.0.0.1:5000/categories
-        all_cat = Category.query.order_by(Category.id).all()
-        fmt_cat = [x.format() for x in all_cat]
+        try:
+            all_cat = Category.query.order_by(Category.id).all()
+            fmt_cat = [x.format() for x in all_cat]
 
-        if len(all_cat) == 0:
+            if len(all_cat) == 0:
+                abort(404)
+
+            return jsonify({
+                'success': True,
+                'categories': fmt_cat
+            })
+
+        except BaseException:
             abort(404)
-
-        return jsonify({
-            'SUCCESS': True,
-            'CATEGORIES': fmt_cat
-        })
 
     # Get all avalaible categories without pagination
 
@@ -98,11 +102,11 @@ def create_app(test_config=None):
 
         try:
             return jsonify({
-                'SUCCESS': True,
-                'QUESTIONS': see_quest,
-                'QUESTIONS ON PAGE': len(see_quest),
-                'TOTAL QUESTIONS': len(all_quest),
-                'Q_CATEGORIES': fmt_cat
+                'success': True,
+                'questions': see_quest,
+                'questions on page': len(see_quest),
+                'total questions': len(all_quest),
+                'q_categories': fmt_cat
             })
 
         except BaseException:
@@ -111,21 +115,26 @@ def create_app(test_config=None):
     # EXTRA: For single view
     @app.route('/questions/<int:question_id>', methods=['GET'])
     def view_one_question(question_id):
-        question = Question.query.filter(
-            Question.id == question_id).one_or_none()
 
-        total = Question.query.all()
+        try:
+            question = Question.query.filter(
+                Question.id == question_id).one_or_none()
 
-        fmt_one = question_id
+            total = Question.query.all()
 
-        if question is None:
+            fmt_one = question_id
+
+            if question is None:
+                abort(404)
+
+            return jsonify({
+                'success': True,
+                'viewed question is': fmt_one,
+                'total questions': len(total)
+            })
+
+        except BaseException:
             abort(404)
-
-        return jsonify({
-            'SUCCESS': True,
-            'VIEWED QUESTION IS': fmt_one,
-            'TOTAL QUESTIONS': len(total)
-        })
 
     """
     @TODO:
@@ -148,9 +157,9 @@ def create_app(test_config=None):
             question.delete()
 
             return jsonify({
-                'SUCCESS': True,
-                'QUESTION DELETED': fmt_one,
-                'TOTAL QUESTIONS': len(Question.query.all())
+                'success': True,
+                'question deleted': fmt_one,
+                'total questions': len(Question.query.all())
             })
         except BaseException:
             abort(405)
@@ -188,8 +197,8 @@ def create_app(test_config=None):
             add_question.insert()
 
             return jsonify({
-                'SUCCESS': True,
-                'TOTAL QUESTIONS': len(Question.query.all())
+                'success': True,
+                'total questions': len(Question.query.all())
             })
         except BaseException:
             abort(422)
@@ -206,25 +215,28 @@ def create_app(test_config=None):
     """
     @app.route('/questions/search', methods=['POST'])
     def search_question():
+        try:
+            body = request.get_json()
+            search_term = body.get('searchTerm', None)
 
-        body = request.get_json()
-        search_term = body.get('searchTerm', None)
+            selection = Question.query.order_by(
+                Question.id).filter(
+                Question.question.ilike(
+                    '%{}%'.format(search_term)))
 
-        selection = Question.query.order_by(
-            Question.id).filter(
-            Question.question.ilike(
-                '%{}%'.format(search_term)))
+            if not selection.count():
+                abort(404)
 
-        if not selection.count():
+            current_questions = paginating_questions(request, selection)
+
+            return jsonify({
+                'success': True,
+                'questions': current_questions,
+                'total questions': len(selection.all()),
+            })
+
+        except BaseException:
             abort(404)
-
-        current_questions = paginating_questions(request, selection)
-
-        return jsonify({
-            'SUCCESS': True,
-            'QUESTIONS': current_questions,
-            'TOTAL QUESTIONS': len(selection.all()),
-        })
 
     """
     @TODO:
@@ -245,10 +257,10 @@ def create_app(test_config=None):
 
         try:
             return jsonify({
-                'SUCCESS': True,
-                'QUESTIONS': [question.format() for question in questions],
-                'TOTAL QUESTIONS': len(questions),
-                'CURRENT CATEGORY': category_id
+                'success': True,
+                'questions': [question.format() for question in questions],
+                'total questions': len(questions),
+                'current category': category_id
             })
         except BaseException:
             abort(404)
@@ -288,8 +300,8 @@ def create_app(test_config=None):
                 0, len(available_questions))].format() if len(available_questions) > 0 else None
 
             return jsonify({
-                'SUCCESS': True,
-                'QUESTION': new_question
+                'success': True,
+                'question': new_question
             })
 
         except BaseException:
