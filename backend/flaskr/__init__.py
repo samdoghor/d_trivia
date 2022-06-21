@@ -17,7 +17,7 @@ QUESTIONS_PER_PAGE = 10
 
 
 def paginating_questions(request, selection):
-    page = request.args.get('Page', 1, type=int)
+    page = request.args.get('page', 1, type=int)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
 
@@ -91,19 +91,22 @@ def create_app(test_config=None):
         all_quest = Question.query.order_by(Question.category).all()
         all_cat = Category.query.all()
         fmt_cat = [z.type for z in all_cat]
-
         see_quest = paginating_questions(request, all_quest)
 
-        if len(all_quest) == 0:
+        if len(see_quest) == 0:
             abort(404)
 
-        return jsonify({
-            'SUCCESS': True,
-            'QUESTIONS': see_quest,
-            'QUESTIONS ON PAGE': len(see_quest),
-            'TOTAL QUESTIONS': len(all_quest),
-            'Q_CATEGORIES': fmt_cat
-        })
+        try:
+            return jsonify({
+                'SUCCESS': True,
+                'QUESTIONS': see_quest,
+                'QUESTIONS ON PAGE': len(see_quest),
+                'TOTAL QUESTIONS': len(all_quest),
+                'Q_CATEGORIES': fmt_cat
+            })
+
+        except BaseException:
+            abort(404)
 
     # EXTRA: For single view
     @app.route('/questions/<int:question_id>', methods=['GET'])
@@ -234,10 +237,13 @@ def create_app(test_config=None):
     @app.route('/categories/<int:category_id>/questions', methods=['GET'])
     def get_questions_by_category(category_id):
 
-        try:
-            questions = Question.query.filter(
-                Question.category == str(category_id)).all()
+        questions = Question.query.filter(
+            Question.category == str(category_id)).all()
 
+        if len(questions) == 0:
+            abort(404)
+
+        try:
             return jsonify({
                 'SUCCESS': True,
                 'QUESTIONS': [question.format() for question in questions],
