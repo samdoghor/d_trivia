@@ -130,7 +130,7 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_quiz(self):
         quiz = {
-            'previous_questions': [13],
+            'previous_questions': [],
             'quiz_category': {
                 'type': 'Geography',
                 'id': '3'

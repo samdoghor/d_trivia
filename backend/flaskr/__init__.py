@@ -276,26 +276,33 @@ def create_app(test_config=None):
     one question at a time is displayed, the user is allowed to answer
     and shown whether they were correct or not.
     """
+
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
         try:
             body=request.get_json()
-            previous_questions=body.get('previousQuestion', None)
-            quiz_category=body.get('quizCategory', None)
+            quiz_category=body.get('quiz_category')
+            previous_questions=body.get('previous_questions')
             category_id = quiz_category['id']
+    
+            if ((quiz_category is None) or (previous_questions is None)):
+                abort(404)
 
-            if (category_id) is None:
-                questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
-            else:
-                questions = Question.query.filter(Question.id.notin_(previous_questions), Question.category == category_id).all()
+            if (category_id is None):
+                view_questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
             
-            question = random.choice(questions)
+            else:
+                view_questions = Question.query.filter_by(category=category_id).filter(Question.id.notin_(previous_questions)).all() #As seen in https://developpaper.com/translation-nested-query-using-sqlalchemy-orm/
+
+            if(view_questions):
+                question = random.choice(view_questions) #As seen in https://www.w3schools.com/python/ref_random_choice.asp
 
             return jsonify({
                 'success': True,
-                'question': question.format()
+                'question': question.format(),
+                'category': category_id
             })
-        
+
         except BaseException:
             abort(422)
 
