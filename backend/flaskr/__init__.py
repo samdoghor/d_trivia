@@ -279,31 +279,23 @@ def create_app(test_config=None):
     @app.route('/quizzes', methods=['POST'])
     def play_quiz():
         try:
-            body = request.get_json()
+            body=request.get_json()
+            previous_questions=body.get('previousQuestion', None)
+            quiz_category=body.get('quizCategory', None)
+            category_id = quiz_category['id']
 
-            if not ('quiz_category' in body and 'previous_questions' in body):
-                abort(422)
-
-            category = body.get('quiz_category')
-            previous_questions = body.get('previous_questions')
-
-            if category['type'] == 'click':
-                available_questions = Question.query.filter(
-                    Question.id.notin_((previous_questions))).all()
+            if (category_id) is None:
+                questions = Question.query.filter(Question.id.notin_(previous_questions)).all()
             else:
-                available_questions = Question.query.filter_by(
-                    category=category['id']).filter(
-                    Question.id.notin_(
-                        (previous_questions))).all()
-
-            new_question = available_questions[random.randrange(
-                0, len(available_questions))].format() if len(available_questions) > 0 else None
+                questions = Question.query.filter(Question.id.notin_(previous_questions), Question.category == category_id).all()
+            
+            question = random.choice(questions)
 
             return jsonify({
                 'success': True,
-                'question': new_question
+                'question': question.format()
             })
-
+        
         except BaseException:
             abort(422)
 
